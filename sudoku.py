@@ -6,18 +6,21 @@ This program is released into the public domain.
 Revision 3
 """
 
-import random, copy
+import random
+import copy
 
-sample  = [ [3,4,1,2,9,7,6,8,5],
-            [2,5,6,8,3,4,9,7,1],
-            [9,8,7,1,5,6,3,2,4],
-            [1,9,2,6,7,5,8,4,3],
-            [8,7,5,4,2,3,1,9,6],
-            [6,3,4,9,1,8,2,5,7],
-            [5,6,3,7,8,9,4,1,2],
-            [4,1,9,5,6,2,7,3,8],
-            [7,2,8,3,4,1,5,6,9] ]
-            
+sample = [
+    [3, 4, 1, 2, 9, 7, 6, 8, 5],
+    [2, 5, 6, 8, 3, 4, 9, 7, 1],
+    [9, 8, 7, 1, 5, 6, 3, 2, 4],
+    [1, 9, 2, 6, 7, 5, 8, 4, 3],
+    [8, 7, 5, 4, 2, 3, 1, 9, 6],
+    [6, 3, 4, 9, 1, 8, 2, 5, 7],
+    [5, 6, 3, 7, 8, 9, 4, 1, 2],
+    [4, 1, 9, 5, 6, 2, 7, 3, 8],
+    [7, 2, 8, 3, 4, 1, 5, 6, 9]
+]
+
 """
 Randomly arrange numbers in a grid while making all rows, columns and
 squares (sub-grids) contain the numbers 1 through 9.
@@ -30,23 +33,23 @@ def construct_puzzle_solution():
         try:
             puzzle  = [[0]*9 for i in range(9)] # start with blank puzzle
             rows    = [set(range(1,10)) for i in range(9)] # set of available
-            columns = [set(range(1,10)) for i in range(9)] #   numbers for each
-            squares = [set(range(1,10)) for i in range(9)] #   row, column and square
+            columns = [set(range(1,10)) for i in range(9)] # numbers for each
+            squares = [set(range(1,10)) for i in range(9)] # row, column and square
             for i in range(9):
                 for j in range(9):
                     # pick a number for cell (i,j) from the set of remaining available numbers
-                    choices = rows[i].intersection(columns[j]).intersection(squares[(i/3)*3 + j/3])
+                    choices = rows[i].intersection(columns[j]).intersection(squares[(i//3)*3 + j//3])
                     choice  = random.choice(list(choices))
-        
+
                     puzzle[i][j] = choice
-        
+
                     rows[i].discard(choice)
                     columns[j].discard(choice)
-                    squares[(i/3)*3 + j/3].discard(choice)
+                    squares[(i//3)*3 + j//3].discard(choice)
 
             # success! every cell is filled.
             return puzzle
-            
+
         except IndexError:
             # if there is an IndexError, we have worked ourselves in a corner (we just start over)
             pass
@@ -63,15 +66,15 @@ def pluck(puzzle, n=0):
     Answers the question: can the cell (i,j) in the puzzle "puz" contain the number
     in cell "c"? """
     def canBeA(puz, i, j, c):
-        v = puz[c/9][c%9]
+        v = puz[c//9][c%9]
         if puz[i][j] == v: return True
         if puz[i][j] in range(1,10): return False
-            
+
         for m in range(9): # test row, col, square
             # if not the cell itself, and the mth cell of the group contains the value v, then "no"
-            if not (m==c/9 and j==c%9) and puz[m][j] == v: return False
-            if not (i==c/9 and m==c%9) and puz[i][m] == v: return False
-            if not ((i/3)*3 + m/3==c/9 and (j/3)*3 + m%3==c%9) and puz[(i/3)*3 + m/3][(j/3)*3 + m%3] == v:
+            if not (m==c//9 and j==c%9) and puz[m][j] == v: return False
+            if not (i==c//9 and m==c%9) and puz[i][m] == v: return False
+            if not ((i//3)*3 + m//3==c//9 and (j//3)*3 + m%3==c%9) and puz[(i//3)*3 + m//3][(j//3)*3 + m%3] == v:
                 return False
 
         return True
@@ -93,18 +96,18 @@ def pluck(puzzle, n=0):
         row = col = square = False
 
         for i in range(9):
-            if i != cell/9:
+            if i != cell//9:
                 if canBeA(puzzle, i, cell%9, cell): row = True
             if i != cell%9:
-                if canBeA(puzzle, cell/9, i, cell): col = True
-            if not (((cell/9)/3)*3 + i/3 == cell/9 and ((cell/9)%3)*3 + i%3 == cell%9):
-                if canBeA(puzzle, ((cell/9)/3)*3 + i/3, ((cell/9)%3)*3 + i%3, cell): square = True
+                if canBeA(puzzle, cell//9, i, cell): col = True
+            if not (((cell//9)//3)*3 + i//3 == cell//9 and ((cell//9)%3)*3 + i%3 == cell%9):
+                if canBeA(puzzle, ((cell//9)//3)*3 + i//3, ((cell//9)%3)*3 + i%3, cell): square = True
 
         if row and col and square:
             continue # could not pluck this cell, try again.
         else:
             # this is a pluckable cell!
-            puzzle[cell/9][cell%9] = 0 # 0 denotes a blank cell
+            puzzle[cell//9][cell%9] = 0 # 0 denotes a blank cell
             cells.discard(cell) # remove from the set of visible cells (pluck it)
             # we don't need to reset "cellsleft" because if a cell was not pluckable
             # earlier, then it will still not be pluckable now (with less information
@@ -112,14 +115,14 @@ def pluck(puzzle, n=0):
 
     # This is the puzzle we found, in all its glory.
     return (puzzle, len(cells))
-    
-    
+
+
 """
 That's it.
 
 If we want to make a puzzle we can do this:
     pluck(construct_puzzle_solution())
-    
+
 The following functions are convenience functions for doing just that...
 """
 
@@ -136,11 +139,11 @@ one of those.
 """
 def run(n = 28, iter=100):
     all_results = {}
-    print "Constructing a sudoku puzzle."
-    print "* creating the solution..."
+    print("Constructing a sudoku puzzle.")
+    print( "* creating the solution...")
     a_puzzle_solution = construct_puzzle_solution()
 
-    print "* constructing a puzzle..."
+    print("* constructing a puzzle...")
     for i in range(iter):
         puzzle = copy.deepcopy(a_puzzle_solution)
         (result, number_of_cells) = pluck(puzzle, n)
@@ -156,7 +159,7 @@ def best(set_of_puzzles):
 
 def display(puzzle):
     for row in puzzle:
-        print ' '.join([str(n or '_') for n in row])
+        print(' '.join([str(n or '_') for n in row]))
 
 
 """ Controls starts here """
